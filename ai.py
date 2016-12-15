@@ -128,7 +128,7 @@ class GreedyAI(AI):
             pass
 
         if move is None:
-            move = random.choice('u', 'd', 'l', 'r')
+            move = random.choice(('u', 'd', 'l', 'r'))
 
         return move
 
