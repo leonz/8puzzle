@@ -3,13 +3,15 @@ To play 8 Puzzle on the console:
 python board.py
 Use 'u', 'd', 'l', 'r' to move the blank space in the respective direction.
 
-python ai.py
-Runs the AStarAI bot on a randomly generated shuffled board.
 
-To run the GUI:
+To run the 8 Puzzle GUI competition game:
 
-Must have flask installed:
+1. You must have flask installed:
 pip install flask
 
-python interface.py
-Open http://localhost:5000
+2. Run the following command.  Specify which algorithm you want the bot to use (greedy if unspecified).
+
+    python interface.py [random, greedy, astar]
+
+3. Open http://localhost:5000 and play!
+

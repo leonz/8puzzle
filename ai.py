@@ -1,5 +1,4 @@
 import random
-from time import sleep
 from collections import namedtuple
 from board import InvalidMoveException
 
@@ -30,49 +29,53 @@ class AI:
 class AStarAI(AI):
     def __init__(self, board):
         super(AStarAI, self).__init__(board)
-        self.pqueue = PriorityQueue()
-        self.pqueue.put(0, State(self.board.copy(), 0, None))
 
     def make_move(self):
-        _, state = self.pqueue.get()
-        self.board = state.board
-        if self.board.solved():
-            return state.moves
+        self.pqueue = PriorityQueue()
+        self.pqueue.put(0, State(self.board.copy(), [], None))
 
-        new_boards = []
+        while not self.board.solved():
+            _, state = self.pqueue.get()
+            self.board = state.board
+            if self.board.solved():
+                if len(state.moves) == 0:
+                    return 'r'  # doesn't matter
+                return state.moves[0]
 
-        try:
-            board = state.board.copy()
-            board.move_up()
-            new_boards.append(board)
-        except InvalidMoveException:
-            pass
-        try:
-            board = state.board.copy()
-            board.move_down()
-            new_boards.append(board)
-        except InvalidMoveException:
-            pass
-        try:
-            board = state.board.copy()
-            board.move_right()
-            new_boards.append(board)
-        except InvalidMoveException:
-            pass
-        try:
-            board = state.board.copy()
-            board.move_left()
-            new_boards.append(board)
-        except InvalidMoveException:
-            pass
+            new_boards = []
 
-        for board in new_boards:
-            self.pqueue.put(
-                state.moves + 1 + board.manhattan(),
-                State(board, state.moves + 1, state.board)
-            )
+            try:
+                board = state.board.copy()
+                board.move_up()
+                new_boards.append((board, "u"))
+            except InvalidMoveException:
+                pass
+            try:
+                board = state.board.copy()
+                board.move_down()
+                new_boards.append((board, "d"))
+            except InvalidMoveException:
+                pass
+            try:
+                board = state.board.copy()
+                board.move_right()
+                new_boards.append((board, "r"))
+            except InvalidMoveException:
+                pass
+            try:
+                board = state.board.copy()
+                board.move_left()
+                new_boards.append((board, "l"))
+            except InvalidMoveException:
+                pass
 
-        return state.moves
+            for board, move in new_boards:
+                new_moves = list(state.moves)
+                new_moves.append(move)
+                self.pqueue.put(
+                    len(state.moves) + board.manhattan(),
+                    State(board, new_moves, state.board)
+                )
 
 
 class HammingAI(AStarAI):
@@ -144,19 +147,19 @@ class RandomAI(AI):
         super(RandomAI, self).__init__()
 
     def make_move(self):
-        self.board.move_random()
+        return random.choice(('u', 'd', 'l', 'r'))
 
-
-if __name__ == '__main__':
-    from board import Board
-    times = 20
-    board2 = Board(times=times)
-    print("Board shuffled %i times" % times)
-    bot = AStarAI(board2)
-    moves = 0
-    while not bot.board.solved():
-        moves = bot.make_move()
-        print("----- move %i" % moves)
-        bot.board.show()
-        sleep(1)
-    print("Solved in %i moves using A* search." % moves)
+#
+#if __name__ == '__main__':
+#    from board import Board
+#    times = 20
+#    board2 = Board(times=times)
+#    print("Board shuffled %i times" % times)
+#    bot = AStarAI(board2)
+#    moves = 0
+#    while not bot.board.solved():
+#        moves = bot.make_move()
+#        print("----- move %i" % moves)
+#        bot.board.show()
+#        sleep(1)
+#    print("Solved in %i moves using A* search." % moves)

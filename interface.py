@@ -1,8 +1,12 @@
 from flask import Flask, send_file, request
+import sys
 from board import Board
-from ai import GreedyAI
+from ai import GreedyAI, AStarAI, RandomAI
 import json
 app = Flask(__name__)
+
+
+ai_class = GreedyAI
 
 
 @app.route("/")
@@ -36,7 +40,7 @@ def next_move():
     ]
     b = Board(tiles=new_tiles)
 
-    ai = GreedyAI(b)
+    ai = ai_class(b)
     move = ai.make_move()
     print(move)
     return json.dumps({
@@ -45,4 +49,15 @@ def next_move():
 
 
 if __name__ == '__main__':
+    global ai
+    if "astar" in sys.argv:
+        ai_class = AStarAI
+        print("Running interface with A* AI")
+    elif "greedy" in sys.argv:
+        ai_class = GreedyAI
+        print("Running interface with Greedy AI")
+    elif "greedy" in sys.argv:
+        ai_class = RandomAI
+        print("Running interface with Random AI")
+
     app.run()
