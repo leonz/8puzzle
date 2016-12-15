@@ -150,7 +150,8 @@ if __name__ == '__main__':
                 print('Invalid command.')
             num_moves += 1
             board.show()
-        except:
+        except InvalidMoveException:
             print('Invalid move.')
 
     print('Finished in %s moves.' % num_moves)
+

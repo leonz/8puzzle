@@ -1,4 +1,5 @@
 import random
+from time import sleep
 from collections import namedtuple
 from board import InvalidMoveException
 
@@ -34,6 +35,10 @@ class AStarAI(AI):
 
     def make_move(self):
         _, state = self.pqueue.get()
+        self.board = state.board
+        if self.board.solved():
+            return state.moves
+
         new_boards = []
 
         try:
@@ -63,15 +68,16 @@ class AStarAI(AI):
 
         for board in new_boards:
             self.pqueue.put(
-                state.moves + 1 + self.priority(board),
+                state.moves + 1 + board.manhattan(),
                 State(board, state.moves + 1, state.board)
             )
-        return state.board, state.moves
+
+        return state.moves
 
 
 class HammingAI(AStarAI):
-    def __init__(self, board):
-        super(HammingAI, self).__init__(board)
+    def __init__(self):
+        super(HammingAI, self).__init__()
 
     def priority(self, board):
         return board.hamming()
@@ -141,6 +147,16 @@ class RandomAI(AI):
         self.board.move_random()
 
 
-class TreeAI(AI):
-    def __init__(self):
-        pass
+if __name__ == '__main__':
+    from board import Board
+    times = 20
+    board2 = Board(times=times)
+    print("Board shuffled %i times" % times)
+    bot = AStarAI(board2)
+    moves = 0
+    while not bot.board.solved():
+        moves = bot.make_move()
+        print("----- move %i" % moves)
+        bot.board.show()
+        sleep(1)
+    print("Solved in %i moves using A* search." % moves)

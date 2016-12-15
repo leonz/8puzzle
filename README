@@ -1,0 +1,15 @@
+To play 8 Puzzle on the console:
+
+python board.py
+Use 'u', 'd', 'l', 'r' to move the blank space in the respective direction.
+
+python ai.py
+Runs the AStarAI bot on a randomly generated shuffled board.
+
+To run the GUI:
+
+Must have flask installed:
+pip install flask
+
+python interface.py
+Open http://localhost:5000

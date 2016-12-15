@@ -66,6 +66,7 @@ button, #radioform {
     <script>
 
 var gameOver;
+var timer;
 
 function aiMakeMove() {
     if (gameOver) {
@@ -156,12 +157,17 @@ function aiMakeMove() {
         }
         alert("AI Won!")
         gameOver = true;
-        document.getElementById('minutes').id = 'minutes-done'
+        window.clearInterval(timer)
+/*
+   document.getElementById('minutes').id = 'minutes-done'
         document.getElementById('seconds').id = 'seconds-done'
+        */
     });
 }
 
 function generateGame() {
+
+    /*
     if (document.getElementById('minutes-done') != null) {
         document.getElementById('minutes-done').id = 'minutes'
         document.getElementById('seconds-done').id = 'seconds'
@@ -170,6 +176,9 @@ function generateGame() {
         document.getElementById('seconds').id = 'seconds-done'
         document.getElementById('minutes-done').id = 'minutes'
         document.getElementById('seconds-done').id = 'seconds'
+    }*/
+    if (timer) {
+        window.clearInterval(timer)
     }
     document.getElementById("seconds").innerHTML = '00';
     document.getElementById("minutes").innerHTML = '00';
@@ -219,15 +228,12 @@ function generateGame() {
     function pad(val) {
         return val > 9 ? val : "0" + val;
     }
-    var timer = setInterval(function () {
+    timer = setInterval(function () {
         document.getElementById("seconds").innerHTML = pad(++sec % 60);
         document.getElementById("minutes").innerHTML = pad(parseInt(sec / 60, 10));
         aiMakeMove();
     }, 1000);
 
-    setTimeout(function () {
-        clearInterval(timer);
-    }, 11000);
 }
 
 document.onkeydown = checkKey;
@@ -296,8 +302,11 @@ function checkKey(e) {
         }
         alert("Won!")
         gameOver = true;
+        window.clearInterval(timer);
+        /*
         document.getElementById('minutes').id = 'minutes-done'
         document.getElementById('seconds').id = 'seconds-done'
+        */
     }
  
 }
