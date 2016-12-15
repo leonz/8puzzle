@@ -1,21 +1,27 @@
 import random
 
 
+GOAL = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, None]
+]
+
+
 class InvalidMoveException(Exception):
     pass
 
 
 class Board:
-    def __init__(self, tiles=None):
+    def __init__(self, tiles=None, times=10):
         if tiles is None:
-            self.tiles = [
-                [1, 2, 3],
-                [4, 5, 6],
-                [7, 8, None]
-            ]
-            self.scramble(times=10)
+            self.tiles = [row[:] for row in GOAL]
+            self.scramble(times=times)
         else:
-            self.tiles = tiles.copy()
+            self.tiles = [row[:] for row in tiles]
+
+    def copy(self):
+        return Board(tiles=[row[:] for row in self.tiles])
 
     def get_empty_coordinates(self):
         for x in range(len(self.tiles)):
@@ -83,17 +89,13 @@ class Board:
             raise InvalidMoveException()
 
     def solved(self):
-        return self.tiles == [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, None]
-        ]
+        return self.tiles == GOAL
 
     def show(self):
         for row in self.tiles:
             print(', '.join((str(x) for x in row)))
 
-    def wrong_position(self):
+    def hamming(self):
         """ Returns count of out-of-place tiles. """
         wrong_count = 0
         expected = 1
@@ -104,6 +106,26 @@ class Board:
                 if not tile == expected:
                     wrong_count += 1
                 expected += 1
+
+    def manhattan(self):
+        """ Returns the total distance of out-of-place tiles to their
+        correct locations via Manhattan distance. """
+        distance = 0
+        goal_coordinates = {}
+        current_coordinates = {}
+        for x in range(len(GOAL)):
+            for y in range(len(GOAL[0])):
+                goal_coordinates[GOAL[x][y]] = (x, y)
+                current_coordinates[self.tiles[x][y]] = (x, y)
+
+        for i in range(1, 9):
+            current_x, current_y = current_coordinates[i]
+            goal_x, goal_y = goal_coordinates[i]
+            distance_x = current_x - goal_x
+            distance_y = current_y - goal_y
+            distance += abs(distance_x) + abs(distance_y)
+
+        return distance
 
 
 if __name__ == '__main__':

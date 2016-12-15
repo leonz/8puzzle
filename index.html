@@ -1,0 +1,349 @@
+<html>
+    <head>
+
+        <title>8 Puzzle Game</title>
+    <style>
+
+body {
+    text-align: center;
+    font-size: 16px;
+}
+
+button, #radioform {
+    margin: 20px 0 0 0;
+    font-size: 120%;
+}
+
+
+.time {
+    font-size: 150%;
+    margin: 30px;
+}
+
+.container {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.outer, .outer-right {
+    float: left;
+    width: 300px;
+    text-align: center;
+}
+.outer-right {
+    margin-left: 100px;
+}
+
+.game {
+    width: 300px;
+    height: 200px;
+    font-size: 200%;
+    margin: 20px 0;
+}
+
+.tile-row {
+    height: 33%;
+    margin: 0;
+    width: 100%;
+}
+
+.tile {
+    margin: 0;
+    width: 0%;
+    height: 70%;
+    float: left;
+    position: relative;
+    background: #ccc;
+    border: 2px solid #111;
+    padding: 5% 17% 5% 13%;
+    text-align: center;
+    margin: 1%
+}
+
+
+    </style>
+
+    <script>
+
+var gameOver;
+
+function aiMakeMove() {
+    if (gameOver) {
+        return;
+    }
+
+    // make a move
+    var opts = {
+        method: 'GET',
+        headers: {}
+    };
+
+    var tileArray = []
+    for (var x = 0; x < 9; x++) {
+        tileArray.push(document.getElementById('aitile-'+x).innerHTML)
+    }
+
+    fetch('/move?tiles='+tileArray, opts).then(function (response) {
+        return response.json();
+    }).then(function (body) {
+        var move = body.move;
+
+        var moves = ['r', 'l', 'u', 'd']
+
+        var factor = .5
+        var strength = document.getElementsByName('aistrength');
+        for (var j = 0; j < strength.length; j++) {
+            if (strength[j].checked) {
+                factor = parseFloat(strength[j].value)
+                break;
+            }
+        }
+
+        if (Math.random() > factor) {
+             move = moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        for (var i = 0; i < 9; i++) {
+            tile = document.getElementById('aitile-' + i)
+            if (tile.innerHTML == '') {
+                break;
+            }
+        }
+
+        if (move == 'u') {
+            // up
+            if (i < 3) {
+                return;
+            } else {
+                document.getElementById('aitile-' + i).innerHTML = document.getElementById('aitile-' + (i-3)).innerHTML
+                document.getElementById('aitile-' + (i-3)).innerHTML = ''
+            }
+        }
+        else if (move == 'd') {
+            // down arrow
+            if (i > 6) {
+                return;
+            } else {
+                document.getElementById('aitile-' + i).innerHTML = document.getElementById('aitile-' + (i+3)).innerHTML
+                document.getElementById('aitile-' + (i+3)).innerHTML = ''
+            }
+        }
+        else if (move == 'l') {
+           // left arrow
+            if (i % 3 == 0) {
+                return;
+            } else {
+                document.getElementById('aitile-' + i).innerHTML = document.getElementById('aitile-' + (i-1)).innerHTML
+                document.getElementById('aitile-' + (i-1)).innerHTML = ''
+            }
+
+        }
+        else if (move == 'r') {
+           // right arrow
+            if (i % 3 == 2) {
+                return;
+            } else {
+                document.getElementById('aitile-' + i).innerHTML = document.getElementById('aitile-' + (i+1)).innerHTML
+                document.getElementById('aitile-' + (i+1)).innerHTML = ''
+            }
+        }
+
+        for (var i = 0; i < 8; i++) {
+        tile = document.getElementById('aitile-' + i)
+            if (tile.innerHTML == '' || parseInt(tile.innerHTML) != i + 1) {
+                return
+            }
+        }
+        alert("AI Won!")
+        gameOver = true;
+        document.getElementById('minutes').id = 'minutes-done'
+        document.getElementById('seconds').id = 'seconds-done'
+    });
+}
+
+function generateGame() {
+    if (document.getElementById('minutes-done') != null) {
+        document.getElementById('minutes-done').id = 'minutes'
+        document.getElementById('seconds-done').id = 'seconds'
+    } else {
+        document.getElementById('minutes').id = 'minutes-done'
+        document.getElementById('seconds').id = 'seconds-done'
+        document.getElementById('minutes-done').id = 'minutes'
+        document.getElementById('seconds-done').id = 'seconds'
+    }
+    document.getElementById("seconds").innerHTML = '00';
+    document.getElementById("minutes").innerHTML = '00';
+
+    var opts = {
+        method: 'GET',
+        headers: {}
+    };
+
+    var difficulty = document.getElementsByName('difficulty')
+    var level = 'easy';
+    for (var n = 0; n < difficulty.length; n++) {
+        if (difficulty[n].checked) {
+            level = difficulty[n].value;
+            break;
+        }
+    }
+
+    fetch('/new-game?level=' + level, opts).then(function (response) {
+        return response.json();
+    }).then(function (body) {
+        var game = body.game
+        var addition = ''
+        var num = 0;
+        for (var i = 0; i < 3; i++) {
+            addition = addition + '<div class="tile-row">'
+            for (var j = 0; j < 3; j++) {
+                var output = game[i][j]
+                if (output == null) {
+                    addition = addition + '<div class="tile empty" id="tile-' + num + '"></div>'
+                } else {
+                    addition = addition + '<div class="tile" id="tile-' + num + '">' +
+                        output + '</div>';
+                }
+                num = num + 1
+            }
+            addition = addition + "</div>"
+        }
+        document.getElementById('player').innerHTML = addition
+        document.getElementById('ai').innerHTML = addition.replace(/id="tile-/g, 'id="aitile-')
+
+    });
+    gameOver = false;
+
+    var sec = 0;
+
+    function pad(val) {
+        return val > 9 ? val : "0" + val;
+    }
+    var timer = setInterval(function () {
+        document.getElementById("seconds").innerHTML = pad(++sec % 60);
+        document.getElementById("minutes").innerHTML = pad(parseInt(sec / 60, 10));
+        if (sec % 2 == 0) {
+            aiMakeMove();
+        }
+    }, 1000);
+
+    setTimeout(function () {
+        clearInterval(timer);
+    }, 11000);
+}
+
+document.onkeydown = checkKey;
+
+
+function checkKey(e) {
+    if (gameOver) {
+        return;
+    }
+
+    e = e || window.event;
+
+    if (e.keyCode == '37' || e.keyCode == '38' || e.keyCode == '39' || e.keyCode == '40') {
+        for (var i = 0; i < 9; i++) {
+            tile = document.getElementById('tile-' + i)
+            if (tile.innerHTML == '') {
+                break;
+            }
+        }
+    }
+
+    if (e.keyCode == '38') {
+        // up arrow
+        if (i < 3) {
+            return;
+        } else {
+            document.getElementById('tile-' + i).innerHTML = document.getElementById('tile-' + (i-3)).innerHTML
+            document.getElementById('tile-' + (i-3)).innerHTML = ''
+        }
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+        if (i > 6) {
+            return;
+        } else {
+            document.getElementById('tile-' + i).innerHTML = document.getElementById('tile-' + (i+3)).innerHTML
+            document.getElementById('tile-' + (i+3)).innerHTML = ''
+        }
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+        if (i % 3 == 0) {
+            return;
+        } else {
+            document.getElementById('tile-' + i).innerHTML = document.getElementById('tile-' + (i-1)).innerHTML
+            document.getElementById('tile-' + (i-1)).innerHTML = ''
+        }
+
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+        if (i % 3 == 2) {
+            return;
+        } else {
+            document.getElementById('tile-' + i).innerHTML = document.getElementById('tile-' + (i+1)).innerHTML
+            document.getElementById('tile-' + (i+1)).innerHTML = ''
+        }
+    }
+
+    if (e.keyCode == '37' || e.keyCode == '38' || e.keyCode == '39' || e.keyCode == '40') {
+        for (var i = 0; i < 8; i++) {
+            tile = document.getElementById('tile-' + i)
+            if (tile.innerHTML == '' || parseInt(tile.innerHTML) != i + 1) {
+                return
+            }
+        }
+        alert("Won!")
+        gameOver = true;
+        document.getElementById('minutes').id = 'minutes-done'
+        document.getElementById('seconds').id = 'seconds-done'
+    }
+ 
+}
+
+
+    </script>
+    
+    </head>
+<body>
+    <div class="container">
+
+    <h1>8 Puzzle Game</h1>
+    Welcome to the 8 puzzle game.  Can you defeat the bot?<br>
+
+    <div class="time">
+    Time: <span id="minutes">00</span>:<span id="seconds">00</span>
+    </div>
+    <div class="radioform">
+    <div class="radios">
+    Game Difficulty:
+    <input type="radio" name="difficulty" value="easy" checked="checked"> Easy 
+    <input type="radio" name="difficulty" value="moderate"> Moderate 
+    <input type="radio" name="difficulty" value="difficult"> Challenging
+    </div>
+    <div class="radios">
+    AI Strength:
+    <input type="radio" name="aistrength" value=".5" checked="checked"> Weak
+    <input type="radio" name="aistrength" value=".7"> Average
+    <input type="radio" name="aistrength" value=".9"> Strong
+    </div>
+    </div>
+
+    <button onclick="generateGame()">Start a game!</button><br>
+
+    
+    <div class="outer">
+        <h2>Player</h2>
+    <div class='game' id="player"></div>
+    </div>
+    <div class="outer-right">
+        <h2>Bot</h2>
+    <div class='game' id="ai"></div>
+    </div>
+    </div>
+
+</body>
+</html>
