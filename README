@@ -15,3 +15,46 @@ pip install flask
 
 3. Open http://localhost:5000 and play!
 
+==========
+
+Additional information on how the program runs
+----------
+
+Python Flask provides a clean and easy interface for the AI bots written in the backend to receive and send information with the frontend game.  In interface.py, Flask opens up two endpoints to create a new game, and to submit a move and receive a recommendation.
+
+@app.route("/move")
+def next_move():
+    tiles = request.args.get("tiles")
+    ...
+    # instantiate an AI bot
+    ...
+    next_move = aibot.make_move()
+    return json.dumps({
+        "move": next_move
+    })
+
+This end point can be accessed with a simple get/put request.  The first line catches the URL parameter "tiles", as in /move?tiles=DATA
+
+On the front end side, JavaScript performs AJAX requests using the new fetch framework:
+
+var opts = {
+    method: 'GET',
+    headers: {}
+};
+fetch('/move?tiles=' + tileArray, opts).then(function (response) {
+    return response.json();
+}).then(function (body) {
+    var move = body.move;
+});
+
+Here, fetch makes an HTTP call to the endpoint described above, retrieves the JSON body of the response, and then extracts the "move" parameter.  Now, we have the "move" that was sent by the backend, and we can apply it to our front end game.
+
+The GUI will make a call like this once every second, so that the AI makes progress at that time interval.
+
+========
+
+Flask is outrageously simple to use, and you can find lots of information about it here: http://flask.pocoo.org/
+
+If you are interested in a similar framework to Flask but for Java 8, then check out SparkJava: http://sparkjava.com/
+
+Both provide basic endpoint exposure that allows you to interface your backend applications with HTTP requests and the web.
